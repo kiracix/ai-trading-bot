@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#020711">
+<title>AI Trading Bot</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#020711;color:#eaf3ff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.app{max-width:900px;margin:auto;padding:24px 14px 45px}header{text-align:center;border-bottom:1px solid #173451;padding:8px 0 20px}
+h1{margin:0;color:#69b1ff;font-size:clamp(30px,8vw,52px);letter-spacing:4px}.sub{color:#6d89a7;letter-spacing:4px;font-size:11px;margin-top:8px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px}.card{background:#061322;border:1px solid #1b507c;border-radius:14px;padding:15px;box-shadow:0 8px 25px #0005}
+.label{font-size:10px;color:#7997b5;letter-spacing:2px}.value{font-size:22px;font-weight:700;margin:7px 0}.green{color:#71e2a3}.red{color:#ff8190}.muted{color:#7890a8}
+.section{margin-top:12px}.row{display:flex;gap:9px;flex-wrap:wrap;align-items:center}select,button{background:#071a2b;color:#eaf3ff;border:1px solid #255b88;border-radius:10px;padding:12px;font-size:15px}button{font-weight:700}.primary{background:#0a3153}
+.chart{height:210px;margin-top:10px}canvas{width:100%;height:100%}.status{margin-left:auto;font-size:11px;color:#70e3a1}.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#50dc8e;margin-right:5px}
+.notice{font-size:12px;line-height:1.5;color:#92a9c0}table{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px}td,th{text-align:left;padding:9px;border-bottom:1px solid #173451}
+@media(max-width:600px){.grid{grid-template-columns:1fr}.status{margin-left:0}}
+</style>
+</head>
+<body><div class="app">
+<header><h1>AI TRADING BOT</h1><div class="sub">SECURE PAPER TRADING</div></header>
+
+<div class="grid">
+<div class="card"><div class="label">BALANCE</div><div id="balance" class="value">$10,000.00</div><div id="pnl" class="green">+$0.00 (0.00%)</div></div>
+<div class="card"><div class="label">TRADES</div><div id="trades" class="value">0</div><div class="muted">paper trades</div></div>
+<div class="card"><div class="label">WIN RATE</div><div id="winrate" class="value">--</div><div class="muted">closed trades</div></div>
+</div>
+
+<div class="card section"><div class="row"><div><div class="label">MARKET</div><div id="price" class="value">Loading…</div></div><div class="status"><span class="dot"></span><span id="connection">Connecting…</span></div></div></div>
+
+<div class="card section"><div class="label">LIVE PNL CURVE</div><div class="chart"><canvas id="chart"></canvas></div></div>
+
+<div class="card section">
+<div class="label">BOT SETTINGS</div><div class="row" style="margin-top:12px">
+<select id="symbol"><option value="BTCUSDT">BTC/USDT</option><option value="ETHUSDT">ETH/USDT</option><option value="SOLUSDT">SOL/USDT</option></select>
+<select id="interval"><option value="1m">1 min</option><option value="5m">5 min</option><option value="15m" selected>15 min</option></select>
+<button id="start" class="primary">START PAPER BOT</button><button id="reset">RESET</button>
+</div>
+<p class="notice">Bu sürüm yalnızca simülasyon yapar. Gerçek borsaya emir göndermez, API anahtarı veya cüzdan bilgisi istemez.</p>
+</div>
+
+<div class="card section"><div class="row"><div class="label">SIGNAL</div><strong id="signal">WAITING</strong></div>
+<div id="detail" class="notice" style="margin-top:8px">Piyasa verisi bekleniyor…</div></div>
+
+<div class="card section"><div class="label">TRADE HISTORY</div>
+<table><thead><tr><th>Zaman</th><th>İşlem</th><th>Fiyat</th><th>P/L</th></tr></thead><tbody id="history"><tr><td colspan="4" class="muted">Henüz işlem yok.</td></tr></tbody></table></div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+let cash=10000,pos=0,entry=0,trades=[],curve=[10000],prices=[],running=false,timer=null;
+
+function money(n){return "$"+Number(n).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}
+function sma(a,n){return a.length<n?null:a.slice(-n).reduce((x,y)=>x+y,0)/n}
+function rsi(a,n=14){if(a.length<n+1)return null;let g=0,l=0;for(let i=a.length-n;i<a.length;i++){let d=a[i]-a[i-1];d>0?g+=d:l-=d}if(l===0)return 100;let rs=g/l;return 100-100/(1+rs)}
+function draw(){let c=$("chart"),r=c.getBoundingClientRect(),d=devicePixelRatio||1;c.width=r.width*d;c.height=r.height*d;let x=c.getContext("2d");x.scale(d,d);let w=r.width,h=r.height;x.clearRect(0,0,w,h);x.strokeStyle="#12304d";for(let i=1;i<5;i++){x.beginPath();x.moveTo(0,i*h/5);x.lineTo(w,i*h/5);x.stroke()}if(curve.length<2)return;let mn=Math.min(...curve),mx=Math.max(...curve),span=mx-mn||1;x.beginPath();curve.forEach((v,i)=>{let px=i*(w/(curve.length-1)),py=h-8-(v-mn)/span*(h-16);i?x.lineTo(px,py):x.moveTo(px,py)});x.strokeStyle="#69b1ff";x.lineWidth=3;x.stroke()}
+function render(){let p=prices.at(-1)||0,equity=cash+pos*p,pnl=equity-10000; $("balance").textContent=money(equity);$("pnl").textContent=(pnl>=0?"+":"")+money(pnl)+" ("+(pnl/100).toFixed(2)+"%)";$("pnl").className=pnl>=0?"green":"red";$("trades").textContent=trades.length;let w=trades.filter(t=>t.pl>0).length;$("winrate").textContent=trades.length?(w/trades.length*100).toFixed(0)+"%":"--";$("price").textContent=p?money(p):"Loading…";$("history").innerHTML=trades.length?trades.slice().reverse().map(t=>`<tr><td>${t.time}</td><td class="${t.side==="BUY"?"green":"red"}">${t.side}</td><td>${money(t.price)}</td><td>${t.side==="SELL"?(t.pl>=0?"+":"")+money(t.pl):"—"}</td></tr>`).join(""):'<tr><td colspan="4" class="muted">Henüz işlem yok.</td></tr>';draw()}
+async function update(){try{let s=$("symbol").value,i=$("interval").value,u=`https://api.binance.com/api/v3/klines?symbol=${s}&interval=${i}&limit=120`,r=await fetch(u,{cache:"no-store"});if(!r.ok)throw 0;prices=(await r.json()).map(k=>+k[4]);$("connection").textContent="Live market data";let a=sma(prices,20),b=sma(prices,50),q=rsi(prices),sig="HOLD";if(a&&b){if(a>b&&q<70)sig="BUY";else if(a<b&&q>30)sig="SELL"}$("signal").textContent=sig; $("detail").textContent=`Fiyat ${money(prices.at(-1))} • SMA20 ${a?money(a):"—"} • SMA50 ${b?money(b):"—"} • RSI ${q?q.toFixed(1):"—"}`;if(running){let p=prices.at(-1);if(sig==="BUY"&&pos===0){pos=(cash*.1)/p;cash-=pos*p;entry=p}else if(sig==="SELL"&&pos>0){let pl=(p-entry)*pos;cash+=pos*p;trades.push({time:new Date().toLocaleTimeString("tr-TR"),side:"SELL",price:p,pl});pos=0;entry=0}curve.push(cash+pos*p);if(curve.length>100)curve.shift()}render()}catch(e){$("connection").textContent="Connection error";$("detail").textContent="Piyasa verisi alınamadı. İnternet bağlantısını kontrol edin.";render()}}
+$("start").onclick=()=>{running=!running;$("start").textContent=running?"STOP PAPER BOT":"START PAPER BOT";if(running){update();timer=setInterval(update,15000)}else clearInterval(timer)}
+$("reset").onclick=()=>{clearInterval(timer);cash=10000;pos=0;entry=0;trades=[];curve=[10000];running=false;$("start").textContent="START PAPER BOT";update()}
+$("symbol").onchange=update;$("interval").onchange=update;onresize=draw;update();
+</script></body></html>
