@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Trading Bot</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0f172a;
+      color: white;
+      text-align: center;
+      padding: 50px 20px;
+    }
+
+    .box {
+      max-width: 400px;
+      margin: auto;
+      background: #1e293b;
+      padding: 30px;
+      border-radius: 20px;
+    }
+
+    input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 14px;
+      margin: 15px 0;
+      border-radius: 10px;
+      border: none;
+      font-size: 16px;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 10px;
+      background: #22c55e;
+      color: white;
+      font-size: 17px;
+      font-weight: bold;
+    }
+
+    #sonuc {
+      margin-top: 20px;
+      padding: 15px;
+      background: #0f172a;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="box">
+
+    <h1>🤖 AI Trading Bot</h1>
+
+    <p>Demo işlem sinyali oluşturucu</p>
+
+    <input id="coin" value="BTC" placeholder="Coin adı">
+
+    <button onclick="sinyalOlustur()">
+      Sinyal Oluştur
+    </button>
+
+    <div id="sonuc">
+      Hazır.
+    </div>
+
+  </div>
+
+  <script>
+    function sinyalOlustur() {
+
+      let coin = document.getElementById("coin").value;
+
+      let sinyaller = ["AL", "BEKLE", "SAT"];
+
+      let sinyal =
+        sinyaller[Math.floor(Math.random() * sinyaller.length)];
+
+      document.getElementById("sonuc").innerHTML =
+        "<h2>" + coin.toUpperCase() + " → " + sinyal + "</h2>" +
+        "<p>Bu yalnızca demo sinyalidir.</p>";
+    }
+  </script>
+
+</body>
+</html>
