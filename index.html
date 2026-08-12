@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>⚡ Coin Analiz Terminali</title>
+
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- HEADER -->
+
+    <header class="header">
+
+        <div class="logo">
+
+            <h1>
+                ⚡ COIN ANALİZ TERMINALİ
+            </h1>
+
+            <p>
+                Gerçek zamanlı piyasa • Order Book • Trade Flow • Sinyal Motoru
+            </p>
+
+        </div>
+
+        <div
+            id="connection"
+            class="connection"
+        >
+
+            <span class="dot"></span>
+
+            <span>
+                Bağlanıyor...
+            </span>
+
+        </div>
+
+    </header>
+
+
+    <!-- CONTROLS -->
+
+    <section class="controls">
+
+        <input
+            id="coinInput"
+            type="text"
+            placeholder="Coin ekle: BTC, ETH, SOL..."
+            autocomplete="off"
+        >
+
+        <button
+            class="btn btn-primary"
+            id="addCoinBtn"
+        >
+            ➕ Coin Ekle
+        </button>
+
+        <select id="sortSelect">
+
+            <option value="score">
+                Sinyal Gücü
+            </option>
+
+            <option value="price">
+                Fiyat
+            </option>
+
+            <option value="momentum">
+                Momentum
+            </option>
+
+            <option value="volume">
+                Hacim
+            </option>
+
+        </select>
+
+        <button
+            class="btn"
+            id="refreshBtn"
+        >
+            🔄 Yenile
+        </button>
+
+    </section>
+
+
+    <!-- MARKET SUMMARY -->
+
+    <section class="market-summary">
+
+        <div class="stat">
+
+            <div class="stat-title">
+                AKTİF COIN
+            </div>
+
+            <div
+                class="stat-value"
+                id="stat-coins"
+            >
+                0
+            </div>
+
+        </div>
+
+
+        <div class="stat">
+
+            <div class="stat-title">
+                AL SİNYALİ
+            </div>
+
+            <div
+                class="stat-value green"
+                id="stat-buy"
+            >
+                0
+            </div>
+
+        </div>
+
+
+        <div class="stat">
+
+            <div class="stat-title">
+                SAT SİNYALİ
+            </div>
+
+            <div
+                class="stat-value red"
+                id="stat-sell"
+            >
+                0
+            </div>
+
+        </div>
+
+
+        <div class="stat">
+
+            <div class="stat-title">
+                ORT. VERİ GECİKMESİ
+            </div>
+
+            <div
+                class="stat-value blue"
+                id="stat-latency"
+            >
+                -
+            </div>
+
+        </div>
+
+
+        <div class="stat">
+
+            <div class="stat-title">
+                MOTOR
+            </div>
+
+            <div class="stat-value green">
+                AKTİF
+            </div>
+
+        </div>
+
+
+        <div class="stat">
+
+            <div class="stat-title">
+                VERİ
+            </div>
+
+            <div class="stat-value">
+                WebSocket
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- TERMINAL -->
+
+    <main class="terminal">
+
+
+        <!-- COIN LIST -->
+
+        <section class="panel">
+
+            <div class="panel-header">
+
+                <div>
+
+                    <div class="panel-title">
+                        📊 PİYASA TARAMA
+                    </div>
+
+                    <div class="panel-subtitle">
+                        Gerçek zamanlı coin sinyalleri
+                    </div>
+
+                </div>
+
+                <div class="panel-subtitle">
+                    RIZO / VANRY filtreli
+                </div>
+
+            </div>
+
+
+            <div style="overflow-x:auto">
+
+                <table class="coin-table">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                COIN
+                            </th>
+
+                            <th>
+                                FİYAT
+                            </th>
+
+                            <th>
+                                SİNYAL
+                            </th>
+
+                            <th>
+                                PUAN
+                            </th>
+
+                            <th>
+                                ALIŞ
+                            </th>
+
+                            <th>
+                                GECİKME
+                            </th>
+
+                            <th>
+                                #
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody id="coin-list">
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+
+        <!-- SIDE PANEL -->
+
+        <aside class="side">
+
+
+            <!-- SIGNAL -->
+
+            <section class="side-card">
+
+                <div class="panel-header">
+
+                    <div class="panel-title">
+                        🎯 SİNYAL MOTORU
+                    </div>
+
+                </div>
+
+                <div class="signal-box">
+
+                    <div
+                        id="detailSignal"
+                        class="big-signal yellow"
+                    >
+                        BEKLE
+                    </div>
+
+                    <div
+                        id="detailScore"
+                        class="signal-score"
+                    >
+                        Sinyal seçilmedi
+                    </div>
+
+
+                    <div class="levels">
+
+                        <div class="level">
+
+                            <span>
+                                GİRİŞ
+                            </span>
+
+                            <b
+                                id="entryLevel"
+                            >
+                                -
+                            </b>
+
+                        </div>
+
+
+                        <div class="level">
+
+                            <span>
+                                HEDEF
+                            </span>
+
+                            <b
+                                id="targetLevel"
+                                class="green"
+                            >
+                                -
+                            </b>
+
+                        </div>
+
+
+                        <div class="level">
+
+                            <span>
+                                STOP
+                            </span>
+
+                            <b
+                                id="stopLevel"
+                                class="red"
+                            >
+                                -
+                            </b>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- ORDER BOOK -->
+
+            <section class="side-card">
+
+                <div class="panel-header">
+
+                    <div class="panel-title">
+                        📖 ORDER BOOK
+                    </div>
+
+                </div>
+
+                <div class="side-content">
+
+                    <div class="book">
+
+                        <div>
+
+                            <div class="book-title">
+                                SATIŞ / ASK
+                            </div>
+
+                            <div id="askBook">
+                                <div class="book-row">
+                                    <span>-</span>
+                                    <span>-</span>
+                                </div>
+                            </div>
+
+                        </div>
+
+
+                        <div>
+
+                            <div class="book-title">
+                                ALIŞ / BID
+                            </div>
+
+                            <div id="bidBook">
+                                <div class="book-row">
+                                    <span>-</span>
+                                    <span>-</span>
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="pressure">
+
+                        <div class="pressure-label">
+
+                            <span>
+                                Order Book Baskısı
+                            </span>
+
+                            <b id="bookPressure">
+                                %50
+                            </b>
+
+                        </div>
+
+                        <div class="pressure-bar">
+
+                            <div
+                                id="pressureBuy"
+                                class="pressure-buy"
+                            ></div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- ALERTS -->
+
+            <section class="side-card">
+
+                <div class="panel-header">
+
+                    <div class="panel-title">
+                        🚨 SİNYAL ALARMLARI
+                    </div>
+
+                </div>
+
+                <div
+                    id="alerts"
+                    class="alerts"
+                >
+
+                    <div class="alert">
+
+                        <strong>
+                            Sistem hazır
+                        </strong>
+
+                        <div>
+                            Güçlü sinyal oluştuğunda burada görünecek.
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- LOG -->
+
+            <section class="side-card">
+
+                <div class="panel-header">
+
+                    <div class="panel-title">
+                        ⚙️ SİSTEM GÜNLÜĞÜ
+                    </div>
+
+                </div>
+
+                <div
+                    id="log"
+                    class="log"
+                ></div>
+
+            </section>
+
+
+        </aside>
+
+    </main>
+
+
+    <footer class="footer">
+
+        Gerçek zamanlı piyasa analiz terminali.
+        Sinyaller yatırım tavsiyesi değildir.
+
+    </footer>
+
+</div>
+
+
+<script src="app.js"></script>
+
+
+<script>
+
+/*
+=========================================================
+ARAYÜZ KONTROLLERİ
+=========================================================
+*/
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function(){
+
+        const input =
+            document.getElementById(
+                "coinInput"
+            );
+
+        const addButton =
+            document.getElementById(
+                "addCoinBtn"
+            );
+
+        const refreshButton =
+            document.getElementById(
+                "refreshBtn"
+            );
+
+        const sortSelect =
+            document.getElementById(
+                "sortSelect"
+            );
+
+
+        /*
+        COIN EKLE
+        */
+
+        addButton.addEventListener(
+            "click",
+            function(){
+
+                if (
+                    typeof addCoin ===
+                    "function"
+                ){
+
+                    addCoin(
+                        input.value
+                    );
+
+                    input.value = "";
+                }
+
+            }
+        );
+
+
+        /*
+        ENTER İLE COIN EKLE
+        */
+
+        input.addEventListener(
+            "keydown",
+            function(event){
+
+                if (
+                    event.key ===
+                    "Enter"
+                ){
+
+                    addButton.click();
+
+                }
+
+            }
+        );
+
+
+        /*
+        YENİLE
+        */
+
+        refreshButton.addEventListener(
+            "click",
+            function(){
+
+                if (
+                    typeof connect ===
+                    "function"
+                ){
+
+                    connect();
+
+                }
+
+            }
+        );
+
+
+        /*
+        SIRALAMA
+        */
+
+        sortSelect.addEventListener(
+            "change",
+            function(){
+
+                sortCoins(
+                    this.value
+                );
+
+            }
+        );
+
+    }
+);
+
+
+/*
+=========================================================
+COIN SIRALAMA
+=========================================================
+*/
+
+function sortCoins(type){
+
+    if (
+        typeof market ===
+        "undefined"
+    )
+        return;
+
+    const list =
+        document.getElementById(
+            "coin-list"
+        );
+
+    if (!list)
+        return;
+
+    const rows =
+        Array.from(
+            list.children
+        );
+
+    rows.sort(
+        function(a,b){
+
+            const symbolA =
+                a.id.replace(
+                    "coin-",
+                    ""
+                );
+
+            const symbolB =
+                b.id.replace(
+                    "coin-",
+                    ""
+                );
+
+            const A =
+                market[symbolA];
+
+            const B =
+                market[symbolB];
+
+            if (!A || !B)
+                return 0;
+
+
+            if (type === "score") {
+
+                return B.score -
+                       A.score;
+
+            }
+
+
+            if (type === "price") {
+
+                return B.price -
+                       A.price;
+
+            }
+
+
+            if (type === "momentum") {
+
+                return B.momentum -
+                       A.momentum;
+
+            }
+
+
+            if (type === "volume") {
+
+                return B.volumeRatio -
+                       A.volumeRatio;
+
+            }
+
+            return 0;
+
+        }
+    );
+
+
+    rows.forEach(
+        row =>
+            list.appendChild(row)
+    );
+}
+
+
+/*
+=========================================================
+DETAY PANELİ
+=========================================================
+*/
+
+setInterval(
+    function(){
+
+        if (
+            typeof market ===
+            "undefined"
+        )
+            return;
+
+
+        const active =
+            Object.entries(
+                market
+            )
+            .filter(
+                ([,data]) =>
+                    data.price > 0
+            )
+            .sort(
+                (a,b) =>
+                    b[1].score -
+                    a[1].score
+            );
+
+
+        if (!active.length)
+            return;
+
+
+        const [
+            symbol,
+            d
+        ] = active[0];
+
+
+        const signal =
+            document.getElementById(
+                "detailSignal"
+            );
+
+        const score =
+            document.getElementById(
+                "detailScore"
+            );
+
+        const entry =
+            document.getElementById(
+                "entryLevel"
+            );
+
+        const target =
+            document.getElementById(
+                "targetLevel"
+            );
+
+        const stop =
+            document.getElementById(
+                "stopLevel"
+            );
+
+
+        if (signal){
+
+            signal.textContent =
+                symbol.replace(
+                    "USDT",
+                    ""
+                ) +
+                " → " +
+                d.signal;
+
+            signal.className =
+                "big-signal " +
+                (
+                    d.score >= 70
+                    ? "green"
+                    : d.score <= 30
+                    ? "red"
+                    : "yellow"
+                );
+
+        }
+
+
+        if (score){
+
+            score.textContent =
+                "Sinyal gücü: " +
+                d.score +
+                "/100";
+
+        }
+
+
+        if (entry){
+
+            entry.textContent =
+                formatPrice(
+                    d.price
+                );
+
+        }
+
+
+        /*
+        HEDEF / STOP
+        ATR yerine mevcut kısa
+        vadeli volatilite kullanılıyor.
+        */
+
+        const volatility =
+            Math.max(
+                d.volatility,
+                0.15
+            ) / 100;
+
+
+        const targetPrice =
+            d.price *
+            (
+                1 +
+                volatility * 2
+            );
+
+
+        const stopPrice =
+            d.price *
+            (
+                1 -
+                volatility
+            );
+
+
+        if (target)
+            target.textContent =
+                formatPrice(
+                    targetPrice
+                );
+
+
+        if (stop)
+            stop.textContent =
+                formatPrice(
+                    stopPrice
+                );
+
+
+        /*
+        ORDER BOOK
+        */
+
+        renderOrderBook(d);
+
+    },
+    250
+);
+
+
+/*
+=========================================================
+ORDER BOOK GÖRÜNÜMÜ
+=========================================================
+*/
+
+function renderOrderBook(d){
+
+    const ask =
+        document.getElementById(
+            "askBook"
+        );
+
+    const bid =
+        document.getElementById(
+            "bidBook"
+        );
+
+    const pressure =
+        document.getElementById(
+            "bookPressure"
+        );
+
+    const pressureBar =
+        document.getElementById(
+            "pressureBuy"
+        );
+
+
+    if (!ask || !bid)
+        return;
+
+
+    ask.innerHTML = "";
+
+    bid.innerHTML = "";
+
+
+    d.asks
+        .slice(0,5)
+        .forEach(
+            item => {
+
+                const row =
+                    document.createElement(
+                        "div"
+                    );
+
+                row.className =
+                    "book-row ask";
+
+                row.innerHTML = `
+                    <span>
+                        ${formatPrice(
+                            item.price
+                        )}
+                    </span>
+
+                    <span>
+                        ${item.quantity.toFixed(4)}
+                    </span>
+                `;
+
+                ask.appendChild(row);
+
+            }
+        );
+
+
+    d.bids
+        .slice(0,5)
+        .forEach(
+            item => {
+
+                const row =
+                    document.createElement(
+                        "div"
+                    );
+
+                row.className =
+                    "book-row bid";
+
+                row.innerHTML = `
+                    <span>
+                        ${formatPrice(
+                            item.price
+                        )}
+                    </span>
+
+                    <span>
+                        ${item.quantity.toFixed(4)}
+                    </span>
+                `;
+
+                bid.appendChild(row);
+
+            }
+        );
+
+
+    if (pressure){
+
+        pressure.textContent =
+            d.imbalance.toFixed(1) +
+            "%";
+
+    }
+
+
+    if (pressureBar){
+
+        pressureBar.style.width =
+            d.imbalance +
+            "%";
+
+    }
+
+}
+
+
+/*
+=========================================================
+SİNYAL MOTORU PERİYODİK GÜNCELLEME
+=========================================================
+*/
+
+setInterval(
+    function(){
+
+        if (
+            typeof market ===
+            "undefined"
+        )
+            return;
+
+
+        Object.keys(
+            market
+        ).forEach(
+            function(symbol){
+
+                if (
+                    typeof calculateIndicators ===
+                    "function"
+                ){
+
+                    calculateIndicators(
+                        market[symbol]
+                    );
+
+                }
+
+
+                if (
+                    typeof calculateSignal ===
+                    "function"
+                ){
+
+                    calculateSignal(
+                        symbol
+                    );
+
+                }
+
+
+                if (
+                    typeof renderCoin ===
+                    "function"
+                ){
+
+                    renderCoin(
+                        symbol
+                    );
+
+                }
+
+            }
+        );
+
+    },
+    500
+);
+
+</script>
+
+</body>
+</html>
