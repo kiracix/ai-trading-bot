@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Coin Analiz Terminali V7.3</title>
+
+<link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- HEADER -->
+    <header class="header">
+
+        <div class="logo">
+            <div class="logo-icon">⚡</div>
+
+            <div>
+                <h1>COIN ANALİZ TERMİNALİ <span>V7.3</span></h1>
+
+                <p>
+                    Çoklu borsa gerçek zamanlı AI piyasa analiz motoru
+                </p>
+            </div>
+        </div>
+
+        <div class="connection">
+
+            <span id="connectionDot">●</span>
+
+            <span id="connectionStatus">
+                Borsalara bağlanıyor...
+            </span>
+
+        </div>
+
+    </header>
+
+
+    <!-- BORSA DURUMLARI -->
+
+    <section class="exchange-panel">
+
+        <div class="exchange-card" id="binanceCard">
+            <div class="exchange-name">BINANCE</div>
+            <div class="exchange-status">
+                <span id="binanceDot">○</span>
+                <span id="binanceStatus">Bekleniyor</span>
+            </div>
+            <small id="binanceMessages">0</small>
+        </div>
+
+
+        <div class="exchange-card" id="bybitCard">
+            <div class="exchange-name">BYBIT</div>
+            <div class="exchange-status">
+                <span id="bybitDot">○</span>
+                <span id="bybitStatus">Bekleniyor</span>
+            </div>
+            <small id="bybitMessages">0</small>
+        </div>
+
+
+        <div class="exchange-card" id="okxCard">
+            <div class="exchange-name">OKX</div>
+            <div class="exchange-status">
+                <span id="okxDot">○</span>
+                <span id="okxStatus">Bekleniyor</span>
+            </div>
+            <small id="okxMessages">0</small>
+        </div>
+
+
+        <div class="exchange-card" id="coinbaseCard">
+            <div class="exchange-name">COINBASE</div>
+            <div class="exchange-status">
+                <span id="coinbaseDot">○</span>
+                <span id="coinbaseStatus">Bekleniyor</span>
+            </div>
+            <small id="coinbaseMessages">0</small>
+        </div>
+
+
+        <div class="exchange-card" id="gateCard">
+            <div class="exchange-name">GATE.IO</div>
+            <div class="exchange-status">
+                <span id="gateDot">○</span>
+                <span id="gateStatus">Bekleniyor</span>
+            </div>
+            <small id="gateMessages">0</small>
+        </div>
+
+    </section>
+
+
+    <!-- GENEL İSTATİSTİK -->
+
+    <section class="market-summary">
+
+        <div class="stat-box">
+            <span>Aktif Coin</span>
+            <strong id="activeCoins">0</strong>
+        </div>
+
+        <div class="stat-box">
+            <span>Mesaj</span>
+            <strong id="totalMessages">0</strong>
+        </div>
+
+        <div class="stat-box">
+            <span>Trade</span>
+            <strong id="totalTrades">0</strong>
+        </div>
+
+        <div class="stat-box">
+            <span>Order Book</span>
+            <strong id="totalBooks">0</strong>
+        </div>
+
+    </section>
+
+
+    <!-- ANA PİYASA -->
+
+    <section class="panel">
+
+        <div class="panel-header">
+
+            <div>
+                <h2>⚡ GERÇEK ZAMANLI PİYASA</h2>
+
+                <small>
+                    Binance • Bybit • OKX • Coinbase • Gate.io
+                </small>
+            </div>
+
+            <input
+                id="coinSearch"
+                type="text"
+                placeholder="Coin ara... BTC / ETH / XRP"
+                autocomplete="off"
+            >
+
+        </div>
+
+
+        <!-- AI SİNYAL -->
+
+        <div class="ai-signal">
+
+            <div class="ai-title">
+                <span>🤖 AI SİNYAL MOTORU</span>
+                <small>Çoklu veri analizi</small>
+            </div>
+
+
+            <div class="signal-main">
+
+                <div class="signal-score">
+
+                    <span>AI SKORU</span>
+
+                    <strong id="signalScore">
+                        50
+                    </strong>
+
+                    <small>/ 100</small>
+
+                </div>
+
+
+                <div class="signal-result">
+
+                    <strong id="signalText">
+                        NÖTR
+                    </strong>
+
+                    <span id="signalDescription">
+                        Piyasa dengeli
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <div class="signal-bar">
+
+                <div
+                    id="signalBar"
+                    class="signal-bar-fill"
+                    style="width:50%"
+                ></div>
+
+            </div>
+
+
+            <div class="signal-factors">
+
+                <div>
+                    <span>Momentum</span>
+                    <strong id="factorMomentum">50</strong>
+                </div>
+
+                <div>
+                    <span>Order Book</span>
+                    <strong id="factorBook">50</strong>
+                </div>
+
+                <div>
+                    <span>Trade Akışı</span>
+                    <strong id="factorTrade">50</strong>
+                </div>
+
+                <div>
+                    <span>Borsa Uyumu</span>
+                    <strong id="factorExchange">50</strong>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- MOMENTUM -->
+
+        <div class="momentum-box">
+
+            <div>
+                <span>5 SN</span>
+
+                <strong id="momentum5">
+                    0.000%
+                </strong>
+            </div>
+
+
+            <div>
+                <span>15 SN</span>
+
+                <strong id="momentum15">
+                    0.000%
+                </strong>
+            </div>
+
+
+            <div>
+                <span>ALIŞ BASKISI</span>
+
+                <strong id="detailPressure">
+                    50.0%
+                </strong>
+            </div>
+
+
+            <div>
+                <span>FİYAT</span>
+
+                <strong id="selectedPrice">
+                    --
+                </strong>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- COIN LİSTESİ -->
+
+    <section class="panel">
+
+        <div class="panel-header">
+
+            <div>
+                <h2>📊 COIN ANALİZİ</h2>
+
+                <small>
+                    Gerçek zamanlı sinyal sıralaması
+                </small>
+            </div>
+
+        </div>
+
+
+        <div
+            id="coinList"
+            class="coin-list"
+        ></div>
+
+    </section>
+
+
+    <!-- ORDER BOOK -->
+
+    <section class="panel">
+
+        <div class="panel-header">
+
+            <div>
+                <h2>📚 ORDER BOOK</h2>
+
+                <small>
+                    Seçili coin
+                </small>
+            </div>
+
+        </div>
+
+
+        <div class="orderbook">
+
+            <div class="book-column">
+
+                <h3 class="buy-title">
+                    ALIŞ
+                </h3>
+
+                <div id="bids"></div>
+
+            </div>
+
+
+            <div class="book-column">
+
+                <h3 class="sell-title">
+                    SATIŞ
+                </h3>
+
+                <div id="asks"></div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- SİSTEM GÜNLÜĞÜ -->
+
+    <section class="panel">
+
+        <div class="panel-header">
+
+            <div>
+                <h2>🖥 SİSTEM GÜNLÜĞÜ</h2>
+
+                <small>
+                    Borsa bağlantıları ve motor olayları
+                </small>
+            </div>
+
+
+            <button id="clearLog">
+                Temizle
+            </button>
+
+        </div>
+
+
+        <div
+            id="log"
+            class="logs"
+        ></div>
+
+    </section>
+
+
+    <!-- FOOTER -->
+
+    <footer class="footer">
+
+        <strong>⚡ COIN ANALİZ TERMİNALİ V7.3</strong>
+
+        <span>
+            Çoklu borsa • Gerçek zamanlı veri • AI sinyal motoru
+        </span>
+
+    </footer>
+
+</div>
+
+
+<script src="app.js"></script>
+
+</body>
+</html>
