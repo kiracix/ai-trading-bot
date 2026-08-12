@@ -1,0 +1,643 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --bg: #070a10;
+    --panel: #0d121c;
+    --panel2: #111827;
+    --border: #1e293b;
+    --text: #f1f5f9;
+    --muted: #8b98aa;
+    --green: #22c55e;
+    --red: #ef4444;
+    --yellow: #f59e0b;
+    --blue: #38bdf8;
+    --purple: #a78bfa;
+}
+
+body {
+    background:
+        radial-gradient(
+            circle at top,
+            #111827 0%,
+            #070a10 45%,
+            #05070b 100%
+        );
+    color: var(--text);
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Arial,
+        sans-serif;
+    min-height: 100vh;
+}
+
+.app {
+    width: 100%;
+    max-width: 1400px;
+    margin: auto;
+    padding: 18px;
+}
+
+/* HEADER */
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 18px;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.logo-icon {
+    width: 48px;
+    height: 48px;
+    display: grid;
+    place-items: center;
+    border-radius: 14px;
+    background: #111827;
+    border: 1px solid #263244;
+    font-size: 25px;
+}
+
+.logo h1 {
+    font-size: 22px;
+    letter-spacing: .5px;
+}
+
+.logo h1 span {
+    color: var(--blue);
+}
+
+.logo p {
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 4px;
+}
+
+.connection {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: rgba(17, 24, 39, .8);
+    border: 1px solid var(--border);
+    font-size: 13px;
+}
+
+#connectionDot {
+    color: var(--yellow);
+    font-size: 16px;
+}
+
+/* EXCHANGE */
+
+.exchange-panel {
+    display: grid;
+    grid-template-columns:
+        repeat(5, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.exchange-card {
+    background:
+        linear-gradient(
+            145deg,
+            #111827,
+            #0b1018
+        );
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 13px;
+    min-width: 0;
+}
+
+.exchange-name {
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .8px;
+}
+
+.exchange-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 7px;
+}
+
+.exchange-card small {
+    display: block;
+    color: #64748b;
+    margin-top: 8px;
+    font-size: 11px;
+}
+
+/* STATS */
+
+.market-summary {
+    display: grid;
+    grid-template-columns:
+        repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.stat-box {
+    background:
+        linear-gradient(
+            145deg,
+            #101722,
+            #0b1018
+        );
+    border: 1px solid var(--border);
+    border-radius: 15px;
+    padding: 16px;
+}
+
+.stat-box span {
+    display: block;
+    color: var(--muted);
+    font-size: 12px;
+    margin-bottom: 7px;
+}
+
+.stat-box strong {
+    font-size: 23px;
+}
+
+/* PANEL */
+
+.panel {
+    background:
+        linear-gradient(
+            145deg,
+            rgba(17, 24, 39, .96),
+            rgba(10, 14, 22, .96)
+        );
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 18px;
+    margin-bottom: 15px;
+    box-shadow:
+        0 10px 35px rgba(0, 0, 0, .18);
+}
+
+.panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.panel-header h2 {
+    font-size: 15px;
+    letter-spacing: .4px;
+}
+
+.panel-header small {
+    color: var(--muted);
+    font-size: 11px;
+    display: block;
+    margin-top: 4px;
+}
+
+#coinSearch {
+    width: 230px;
+    background: #080d15;
+    border: 1px solid #263244;
+    color: white;
+    border-radius: 10px;
+    padding: 11px 13px;
+    outline: none;
+}
+
+#coinSearch:focus {
+    border-color: var(--blue);
+    box-shadow:
+        0 0 0 3px
+        rgba(56, 189, 248, .08);
+}
+
+/* AI SIGNAL */
+
+.ai-signal {
+    background:
+        radial-gradient(
+            circle at 85% 20%,
+            rgba(56, 189, 248, .10),
+            transparent 35%
+        ),
+        #090f18;
+    border: 1px solid #243246;
+    border-radius: 16px;
+    padding: 18px;
+    margin-bottom: 14px;
+}
+
+.ai-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.ai-title span {
+    font-weight: 800;
+    font-size: 13px;
+}
+
+.ai-title small {
+    color: var(--muted);
+}
+
+.signal-main {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+}
+
+.signal-score {
+    min-width: 125px;
+}
+
+.signal-score span {
+    display: block;
+    color: var(--muted);
+    font-size: 10px;
+    letter-spacing: 1px;
+}
+
+.signal-score strong {
+    font-size: 48px;
+    line-height: 1;
+}
+
+.signal-score small {
+    color: var(--muted);
+}
+
+.signal-result {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.signal-result strong {
+    font-size: 24px;
+}
+
+.signal-result span {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.signal-bar {
+    width: 100%;
+    height: 8px;
+    background: #1e293b;
+    border-radius: 20px;
+    overflow: hidden;
+    margin: 18px 0;
+}
+
+.signal-bar-fill {
+    height: 100%;
+    width: 50%;
+    border-radius: 20px;
+    transition: width .4s ease;
+    background: var(--blue);
+}
+
+.signal-factors {
+    display: grid;
+    grid-template-columns:
+        repeat(4, 1fr);
+    gap: 10px;
+}
+
+.signal-factors div {
+    background: #0d141f;
+    border: 1px solid #1d2939;
+    border-radius: 10px;
+    padding: 10px;
+}
+
+.signal-factors span {
+    display: block;
+    color: var(--muted);
+    font-size: 10px;
+    margin-bottom: 5px;
+}
+
+.signal-factors strong {
+    font-size: 16px;
+}
+
+/* MOMENTUM */
+
+.momentum-box {
+    display: grid;
+    grid-template-columns:
+        repeat(4, 1fr);
+    gap: 10px;
+}
+
+.momentum-box > div {
+    background: #0a1019;
+    border: 1px solid #1d2939;
+    border-radius: 12px;
+    padding: 13px;
+}
+
+.momentum-box span {
+    display: block;
+    color: var(--muted);
+    font-size: 10px;
+    margin-bottom: 7px;
+}
+
+.momentum-box strong {
+    font-size: 17px;
+}
+
+/* COIN LIST */
+
+.coin-list {
+    display: grid;
+    grid-template-columns:
+        repeat(3, 1fr);
+    gap: 10px;
+}
+
+.coin-card {
+    background: #0a1019;
+    border: 1px solid #1d2939;
+    border-radius: 13px;
+    padding: 14px;
+    cursor: pointer;
+    transition:
+        transform .15s ease,
+        border-color .15s ease;
+}
+
+.coin-card:hover {
+    transform: translateY(-2px);
+    border-color: #3b82f6;
+}
+
+.coin-card.selected {
+    border-color: var(--blue);
+}
+
+.coin-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.coin-name {
+    font-weight: 800;
+}
+
+.coin-price {
+    font-size: 16px;
+    margin-top: 10px;
+}
+
+.coin-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.coin-momentum {
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.coin-signal {
+    font-size: 11px;
+    font-weight: 800;
+    padding: 5px 8px;
+    border-radius: 7px;
+    background: #182131;
+}
+
+/* ORDER BOOK */
+
+.orderbook {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.book-column {
+    background: #090f17;
+    border: 1px solid #1d2939;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.book-column h3 {
+    padding: 12px;
+    font-size: 12px;
+    border-bottom: 1px solid #1d2939;
+}
+
+.buy-title {
+    color: var(--green);
+}
+
+.sell-title {
+    color: var(--red);
+}
+
+.book-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding: 8px 11px;
+    font-family: monospace;
+    font-size: 11px;
+    border-bottom: 1px solid rgba(30, 41, 59, .45);
+}
+
+.book-row span:last-child {
+    text-align: right;
+    color: var(--muted);
+}
+
+/* LOG */
+
+.logs {
+    height: 180px;
+    overflow-y: auto;
+    background: #070b11;
+    border: 1px solid #1d2939;
+    border-radius: 11px;
+    padding: 10px;
+    font-family: monospace;
+    font-size: 11px;
+    color: #94a3b8;
+}
+
+.logs div {
+    padding: 5px 2px;
+    border-bottom: 1px solid
+        rgba(30, 41, 59, .4);
+}
+
+#clearLog {
+    border: 1px solid #334155;
+    background: #111827;
+    color: #cbd5e1;
+    border-radius: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+}
+
+#clearLog:hover {
+    border-color: var(--blue);
+}
+
+/* FOOTER */
+
+.footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    color: #64748b;
+    font-size: 11px;
+    padding: 12px 4px 25px;
+}
+
+/* MOBİL */
+
+@media (max-width: 850px) {
+
+    .app {
+        padding: 10px;
+    }
+
+    .header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .connection {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .exchange-panel {
+        grid-template-columns:
+            repeat(2, 1fr);
+    }
+
+    .exchange-card:last-child {
+        grid-column: span 2;
+    }
+
+    .market-summary {
+        grid-template-columns:
+            repeat(2, 1fr);
+    }
+
+    .signal-factors {
+        grid-template-columns:
+            repeat(2, 1fr);
+    }
+
+    .momentum-box {
+        grid-template-columns:
+            repeat(2, 1fr);
+    }
+
+    .coin-list {
+        grid-template-columns: 1fr;
+    }
+
+    .panel-header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    #coinSearch {
+        width: 100%;
+    }
+
+    .footer {
+        flex-direction: column;
+    }
+
+}
+
+@media (max-width: 500px) {
+
+    .logo h1 {
+        font-size: 17px;
+    }
+
+    .logo p {
+        font-size: 11px;
+    }
+
+    .panel {
+        padding: 13px;
+        border-radius: 14px;
+    }
+
+    .exchange-panel {
+        grid-template-columns:
+            repeat(2, 1fr);
+    }
+
+    .market-summary {
+        gap: 8px;
+    }
+
+    .stat-box {
+        padding: 12px;
+    }
+
+    .stat-box strong {
+        font-size: 19px;
+    }
+
+    .signal-main {
+        gap: 15px;
+    }
+
+    .signal-score strong {
+        font-size: 38px;
+    }
+
+    .signal-result strong {
+        font-size: 19px;
+    }
+
+    .orderbook {
+        gap: 7px;
+    }
+
+    .book-row {
+        font-size: 9px;
+        padding: 7px 5px;
+    }
+
+}
