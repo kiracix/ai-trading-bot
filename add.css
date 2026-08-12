@@ -1,0 +1,1048 @@
+/* =========================================================
+   COIN ANALİZ TERMİNALİ V4
+   REAL-TIME TRADE + ORDER BOOK + MOMENTUM
+   Binance WebSocket
+========================================================= */
+
+"use strict";
+
+/* -----------------------------
+   AYARLAR
+----------------------------- */
+
+const EXCLUDED = new Set([
+    "RIZOUSDT",
+    "VANRYUSDT"
+]);
+
+const COINS = [
+    "BTCUSDT",
+    "ETHUSDT",
+    "BNBUSDT",
+    "SOLUSDT",
+    "XRPUSDT",
+    "DOGEUSDT",
+    "ADAUSDT",
+    "AVAXUSDT",
+    "LINKUSDT"
+];
+
+const CONFIG = {
+    tradeWindow: 15000,
+    priceWindow: 60000,
+    bookLevels: 10,
+    reconnectDelay: 3000,
+    maxTrades: 1000,
+    maxPrices: 500,
+    updateInterval: 100
+};
+
+/* -----------------------------
+   MARKET DATA
+----------------------------- */
+
+const market = {};
+
+for (const symbol of COINS) {
+
+    if (EXCLUDED.has(symbol)) continue;
+
+    market[symbol] = {
+        symbol,
+
+        price: 0,
+        previousPrice: 0,
+
+        trades: [],
+        prices: [],
+
+        buyVolume: 0,
+        sellVolume: 0,
+
+        bids: [],
+        asks: [],
+
+        lastTradeTime: 0,
+        lastBookTime: 0,
+
+        tradeCount: 0,
+        bookCount: 0,
+
+        signal: "WAIT",
+        score: 50,
+
+        momentum: 0,
+        pressure: 50,
+
+        spread: 0,
+
+        initialized: false
+    };
+}
+
+/* -----------------------------
+   GLOBAL
+----------------------------- */
+
+let socket = null;
+let reconnectTimer = null;
+
+let totalMessages = 0;
+let totalTrades = 0;
+let totalBooks = 0;
+
+let connected = false;
+
+let selectedCoin = "BTCUSDT";
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+function now() {
+    return Date.now();
+}
+
+function fmtPrice(price) {
+
+    if (!price || !Number.isFinite(price)) {
+        return "-";
+    }
+
+    if (price >= 1000) {
+        return price.toFixed(2);
+    }
+
+    if (price >= 1) {
+        return price.toFixed(4);
+    }
+
+    if (price >= 0.01) {
+        return price.toFixed(6);
+    }
+
+    return price.toFixed(8);
+}
+
+function fmtNumber(value) {
+
+    if (!Number.isFinite(value)) {
+        return "-";
+    }
+
+    if (Math.abs(value) >= 1000000) {
+        return (value / 1000000).toFixed(2) + "M";
+    }
+
+    if (Math.abs(value) >= 1000) {
+        return (value / 1000).toFixed(2) + "K";
+    }
+
+    return value.toFixed(2);
+}
+
+/* =========================================================
+   LOG
+========================================================= */
+
+function log(message, type = "") {
+
+    const box =
+        document.querySelector("#log") ||
+        document.querySelector(".log");
+
+    if (!box) return;
+
+    const time = new Date().toLocaleTimeString(
+        "tr-TR",
+        {
+            hour12: false,
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit"
+        }
+    );
+
+    const line = document.createElement("div");
+
+    line.className =
+        "log-line " +
+        (type === "buy"
+            ? "log-buy"
+            : type === "sell"
+                ? "log-sell"
+                : "");
+
+    line.innerHTML =
+        `<span class="log-time">[${time}]</span> ${message}`;
+
+    box.prepend(line);
+
+    while (box.children.length > 150) {
+        box.removeChild(box.lastChild);
+    }
+}
+
+/* =========================================================
+   CONNECTION STATUS
+========================================================= */
+
+function connectionStatus(text, online = false) {
+
+    const candidates = [
+        "#connectionStatus",
+        "#connection",
+        ".connection span",
+        ".connection"
+    ];
+
+    let element = null;
+
+    for (const selector of candidates) {
+
+        const found = document.querySelector(selector);
+
+        if (found) {
+            element = found;
+            break;
+        }
+    }
+
+    if (!element) return;
+
+    element.textContent = text;
+
+    if (online) {
+        element.classList.add("live-pulse");
+    } else {
+        element.classList.remove("live-pulse");
+    }
+}
+
+/* =========================================================
+   BINANCE STREAM
+========================================================= */
+
+function buildStreamURL() {
+
+    const streams = [];
+
+    for (const symbol of COINS) {
+
+        if (EXCLUDED.has(symbol)) continue;
+
+        const s = symbol.toLowerCase();
+
+        streams.push(`${s}@trade`);
+        streams.push(`${s}@depth10@100ms`);
+    }
+
+    return (
+        "wss://stream.binance.com:9443/stream?streams=" +
+        streams.join("/")
+    );
+}
+
+/* =========================================================
+   CONNECT
+========================================================= */
+
+function connect() {
+
+    if (socket) {
+
+        try {
+            socket.close();
+        } catch (e) {}
+
+        socket = null;
+    }
+
+    connectionStatus("Bağlanıyor...", false);
+
+    const url = buildStreamURL();
+
+    log("Binance WebSocket bağlantısı başlatılıyor...");
+
+    try {
+
+        socket = new WebSocket(url);
+
+    } catch (error) {
+
+        log("WebSocket oluşturulamadı: " + error.message);
+
+        scheduleReconnect();
+
+        return;
+    }
+
+    socket.onopen = () => {
+
+        connected = true;
+
+        connectionStatus("GERÇEK ZAMANLI", true);
+
+        log("✓ Binance WebSocket bağlantısı aktif.");
+
+        updateGlobalUI();
+    };
+
+    socket.onmessage = event => {
+
+        totalMessages++;
+
+        try {
+
+            const packet = JSON.parse(event.data);
+
+            const data = packet.data;
+
+            if (!data) return;
+
+            processMessage(data);
+
+        } catch (error) {
+
+            console.error("Message error:", error);
+        }
+    };
+
+    socket.onerror = error => {
+
+        console.warn("WebSocket error:", error);
+
+        log("WebSocket bağlantı hatası.");
+
+    };
+
+    socket.onclose = () => {
+
+        connected = false;
+
+        connectionStatus("Yeniden bağlanıyor...", false);
+
+        log("WebSocket bağlantısı kapandı.");
+
+        scheduleReconnect();
+    };
+}
+
+/* =========================================================
+   RECONNECT
+========================================================= */
+
+function scheduleReconnect() {
+
+    if (reconnectTimer) return;
+
+    reconnectTimer = setTimeout(() => {
+
+        reconnectTimer = null;
+
+        connect();
+
+    }, CONFIG.reconnectDelay);
+}
+
+/* =========================================================
+   MESSAGE ROUTER
+========================================================= */
+
+function processMessage(data) {
+
+    if (!data.s) return;
+
+    const symbol = data.s.toUpperCase();
+
+    if (EXCLUDED.has(symbol)) return;
+
+    if (!market[symbol]) return;
+
+    if (data.e === "trade") {
+
+        processTrade(symbol, data);
+
+        return;
+    }
+
+    if (data.e === "depthUpdate") {
+
+        processBook(symbol, data);
+
+        return;
+    }
+}
+
+/* =========================================================
+   TRADE
+========================================================= */
+
+function processTrade(symbol, data) {
+
+    const m = market[symbol];
+
+    const price = Number(data.p);
+    const quantity = Number(data.q);
+
+    if (!Number.isFinite(price)) return;
+
+    const timestamp = Number(data.T) || now();
+
+    const buyerMaker = Boolean(data.m);
+
+    m.previousPrice = m.price;
+    m.price = price;
+
+    m.lastTradeTime = timestamp;
+
+    m.tradeCount++;
+
+    totalTrades++;
+
+    const trade = {
+        time: timestamp,
+        price,
+        quantity,
+        side: buyerMaker ? "SELL" : "BUY"
+    };
+
+    m.trades.push(trade);
+
+    if (trade.side === "BUY") {
+
+        m.buyVolume += quantity;
+
+    } else {
+
+        m.sellVolume += quantity;
+    }
+
+    m.prices.push({
+        time: timestamp,
+        price
+    });
+
+    cleanupMarket(m, timestamp);
+
+    calculateSignal(m);
+
+    const side =
+        trade.side === "BUY"
+            ? "buy"
+            : "sell";
+
+    if (
+        trade.quantity > 0 &&
+        trade.quantity * trade.price > 50000
+    ) {
+
+        log(
+            `${symbol} büyük ${trade.side} işlemi: ` +
+            `${fmtPrice(price)} / ` +
+            `${fmtNumber(quantity)}`,
+            side
+        );
+    }
+}
+
+/* =========================================================
+   ORDER BOOK
+========================================================= */
+
+function processBook(symbol, data) {
+
+    const m = market[symbol];
+
+    m.lastBookTime =
+        Number(data.E) || now();
+
+    m.bookCount++;
+
+    totalBooks++;
+
+    m.bids = Array.isArray(data.bids)
+        ? data.bids.slice(0, CONFIG.bookLevels).map(x => ({
+            price: Number(x[0]),
+            quantity: Number(x[1])
+        }))
+        : [];
+
+    m.asks = Array.isArray(data.asks)
+        ? data.asks.slice(0, CONFIG.bookLevels).map(x => ({
+            price: Number(x[0]),
+            quantity: Number(x[1])
+        }))
+        : [];
+
+    calculateSignal(m);
+}
+
+/* =========================================================
+   CLEANUP
+========================================================= */
+
+function cleanupMarket(m, timestamp) {
+
+    const tradeLimit =
+        timestamp - CONFIG.tradeWindow;
+
+    while (
+        m.trades.length &&
+        m.trades[0].time < tradeLimit
+    ) {
+
+        const old = m.trades.shift();
+
+        if (old.side === "BUY") {
+
+            m.buyVolume -= old.quantity;
+
+        } else {
+
+            m.sellVolume -= old.quantity;
+        }
+    }
+
+    const priceLimit =
+        timestamp - CONFIG.priceWindow;
+
+    while (
+        m.prices.length &&
+        m.prices[0].time < priceLimit
+    ) {
+
+        m.prices.shift();
+    }
+
+    if (m.trades.length > CONFIG.maxTrades) {
+
+        m.trades.splice(
+            0,
+            m.trades.length - CONFIG.maxTrades
+        );
+    }
+
+    if (m.prices.length > CONFIG.maxPrices) {
+
+        m.prices.splice(
+            0,
+            m.prices.length - CONFIG.maxPrices
+        );
+    }
+}
+
+/* =========================================================
+   SIGNAL ENGINE
+========================================================= */
+
+function calculateSignal(m) {
+
+    let score = 50;
+
+    /* -------------------------
+       TRADE PRESSURE
+    ------------------------- */
+
+    const totalVolume =
+        m.buyVolume + m.sellVolume;
+
+    let pressure = 50;
+
+    if (totalVolume > 0) {
+
+        pressure =
+            (m.buyVolume / totalVolume) * 100;
+    }
+
+    m.pressure = pressure;
+
+    score +=
+        (pressure - 50) * 0.45;
+
+    /* -------------------------
+       MOMENTUM
+    ------------------------- */
+
+    let momentum = 0;
+
+    if (m.prices.length >= 2) {
+
+        const first =
+            m.prices[0].price;
+
+        const last =
+            m.prices[m.prices.length - 1].price;
+
+        if (first > 0) {
+
+            momentum =
+                ((last - first) / first) * 100;
+        }
+    }
+
+    m.momentum = momentum;
+
+    score += momentum * 7;
+
+    /* -------------------------
+       ORDER BOOK
+    ------------------------- */
+
+    let bidVolume = 0;
+    let askVolume = 0;
+
+    for (const bid of m.bids) {
+
+        bidVolume += bid.quantity;
+    }
+
+    for (const ask of m.asks) {
+
+        askVolume += ask.quantity;
+    }
+
+    const bookTotal =
+        bidVolume + askVolume;
+
+    let bookPressure = 50;
+
+    if (bookTotal > 0) {
+
+        bookPressure =
+            (bidVolume / bookTotal) * 100;
+    }
+
+    score +=
+        (bookPressure - 50) * 0.25;
+
+    /* -------------------------
+       SPREAD
+    ------------------------- */
+
+    if (m.bids.length && m.asks.length) {
+
+        const bestBid =
+            m.bids[0].price;
+
+        const bestAsk =
+            m.asks[0].price;
+
+        m.spread =
+            bestAsk - bestBid;
+    }
+
+    /* -------------------------
+       CLAMP
+    ------------------------- */
+
+    score =
+        Math.max(
+            0,
+            Math.min(
+                100,
+                score
+            )
+        );
+
+    m.score = score;
+
+    /* -------------------------
+       SIGNAL
+    ------------------------- */
+
+    if (score >= 80) {
+
+        m.signal = "STRONG BUY";
+
+    } else if (score >= 65) {
+
+        m.signal = "BUY";
+
+    } else if (score <= 20) {
+
+        m.signal = "STRONG SELL";
+
+    } else if (score <= 35) {
+
+        m.signal = "SELL";
+
+    } else {
+
+        m.signal = "WAIT";
+    }
+}
+
+/* =========================================================
+   SIGNAL CLASS
+========================================================= */
+
+function signalClass(signal) {
+
+    switch (signal) {
+
+        case "STRONG BUY":
+            return "signal-strong-buy";
+
+        case "BUY":
+            return "signal-buy";
+
+        case "SELL":
+            return "signal-sell";
+
+        case "STRONG SELL":
+            return "signal-strong-sell";
+
+        default:
+            return "signal-wait";
+    }
+}
+
+/* =========================================================
+   UPDATE TABLE
+========================================================= */
+
+function updateCoinTable() {
+
+    const table =
+        document.querySelector("#coinTable tbody") ||
+        document.querySelector("#coinTable");
+
+    if (!table) return;
+
+    let tbody = table;
+
+    if (table.tagName !== "TBODY") {
+
+        tbody =
+            table.querySelector("tbody");
+
+        if (!tbody) return;
+    }
+
+    tbody.innerHTML = "";
+
+    const sorted =
+        Object.values(market)
+            .sort(
+                (a, b) =>
+                    b.score - a.score
+            );
+
+    for (const m of sorted) {
+
+        const row =
+            document.createElement("tr");
+
+        row.className = "coin-row";
+
+        row.dataset.symbol = m.symbol;
+
+        row.innerHTML = `
+            <td>
+                <div class="coin-name">
+                    ${m.symbol.replace("USDT", "")}
+                </div>
+            </td>
+
+            <td class="coin-price">
+                ${fmtPrice(m.price)}
+            </td>
+
+            <td class="${m.momentum >= 0 ? "green" : "red"}">
+                ${m.momentum >= 0 ? "+" : ""}
+                ${m.momentum.toFixed(3)}%
+            </td>
+
+            <td>
+                <span class="signal ${signalClass(m.signal)}">
+                    ${m.signal}
+                </span>
+            </td>
+
+            <td>
+                <div class="score-wrap">
+                    <div class="score-number">
+                        ${m.score.toFixed(0)}
+                    </div>
+
+                    <div class="score-bar">
+                        <div
+                            class="score-fill"
+                            style="width:${m.score}%"
+                        ></div>
+                    </div>
+                </div>
+            </td>
+
+            <td>
+                ${m.pressure.toFixed(1)}%
+            </td>
+
+            <td>
+                ${m.tradeCount}
+            </td>
+        `;
+
+        row.addEventListener(
+            "click",
+            () => {
+
+                selectedCoin =
+                    m.symbol;
+
+                updateDetail();
+            }
+        );
+
+        tbody.appendChild(row);
+    }
+}
+
+/* =========================================================
+   ORDER BOOK UI
+========================================================= */
+
+function updateBook(m) {
+
+    const bids =
+        document.querySelector("#bids");
+
+    const asks =
+        document.querySelector("#asks");
+
+    if (bids) {
+
+        bids.innerHTML =
+            m.bids
+                .slice(0, 10)
+                .map(
+                    x => `
+                    <div class="book-row bid">
+                        <span>${fmtPrice(x.price)}</span>
+                        <span>${fmtNumber(x.quantity)}</span>
+                    </div>
+                    `
+                )
+                .join("");
+    }
+
+    if (asks) {
+
+        asks.innerHTML =
+            m.asks
+                .slice(0, 10)
+                .map(
+                    x => `
+                    <div class="book-row ask">
+                        <span>${fmtPrice(x.price)}</span>
+                        <span>${fmtNumber(x.quantity)}</span>
+                    </div>
+                    `
+                )
+                .join("");
+    }
+}
+
+/* =========================================================
+   DETAIL
+========================================================= */
+
+function updateDetail() {
+
+    const m =
+        market[selectedCoin];
+
+    if (!m) return;
+
+    const signal =
+        document.querySelector("#bigSignal");
+
+    const score =
+        document.querySelector("#signalScore");
+
+    const price =
+        document.querySelector("#detailPrice");
+
+    if (signal) {
+
+        signal.textContent =
+            m.signal;
+
+        signal.className =
+            "big-signal " +
+            (
+                m.score >= 65
+                    ? "green"
+                    : m.score <= 35
+                        ? "red"
+                        : "yellow"
+            );
+    }
+
+    if (score) {
+
+        score.textContent =
+            `Skor: ${m.score.toFixed(1)} / 100`;
+    }
+
+    if (price) {
+
+        price.textContent =
+            fmtPrice(m.price);
+    }
+
+    updateBook(m);
+}
+
+/* =========================================================
+   GLOBAL UI
+========================================================= */
+
+function updateGlobalUI() {
+
+    const active =
+        Object.values(market)
+            .filter(
+                m =>
+                    m.lastTradeTime > 0
+            )
+            .length;
+
+    const activeElement =
+        document.querySelector("#activeCoins");
+
+    const messagesElement =
+        document.querySelector("#totalMessages");
+
+    const tradesElement =
+        document.querySelector("#totalTrades");
+
+    const booksElement =
+        document.querySelector("#totalBooks");
+
+    if (activeElement) {
+
+        activeElement.textContent =
+            active;
+    }
+
+    if (messagesElement) {
+
+        messagesElement.textContent =
+            totalMessages;
+    }
+
+    if (tradesElement) {
+
+        tradesElement.textContent =
+            totalTrades;
+    }
+
+    if (booksElement) {
+
+        booksElement.textContent =
+            totalBooks;
+    }
+}
+
+/* =========================================================
+   SEARCH
+========================================================= */
+
+function setupSearch() {
+
+    const input =
+        document.querySelector("#coinSearch");
+
+    if (!input) return;
+
+    input.addEventListener(
+        "input",
+        () => {
+
+            const query =
+                input.value
+                    .trim()
+                    .toUpperCase();
+
+            document
+                .querySelectorAll(".coin-row")
+                .forEach(row => {
+
+                    const symbol =
+                        row.dataset.symbol || "";
+
+                    row.style.display =
+                        symbol.includes(query)
+                            ? ""
+                            : "none";
+                });
+        }
+    );
+}
+
+/* =========================================================
+   START
+========================================================= */
+
+function start() {
+
+    console.log(
+        "Coin Analiz Terminali V4 başlatılıyor..."
+    );
+
+    log(
+        "Terminal başlatıldı."
+    );
+
+    setupSearch();
+
+    updateCoinTable();
+
+    updateGlobalUI();
+
+    connect();
+
+    setInterval(
+        () => {
+
+            for (const m of Object.values(market)) {
+
+                cleanupMarket(
+                    m,
+                    now()
+                );
+
+                calculateSignal(m);
+            }
+
+            updateCoinTable();
+
+            updateDetail();
+
+            updateGlobalUI();
+
+        },
+        CONFIG.updateInterval
+    );
+}
+
+/* =========================================================
+   PAGE READY
+========================================================= */
+
+if (
+    document.readyState ===
+    "loading"
+) {
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        start
+    );
+
+} else {
+
+    start();
+}
