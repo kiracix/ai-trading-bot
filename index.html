@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Kripto Sinyal Motoru</title>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+margin:0;
+padding:16px;
+font-family:Arial,sans-serif;
+background:#07111f;
+color:#fff;
+}
+
+.container{
+max-width:620px;
+margin:auto;
+}
+
+.card{
+background:#111e2e;
+border-radius:22px;
+padding:18px;
+box-shadow:0 12px 35px #0007;
+}
+
+h1{
+text-align:center;
+margin:5px 0;
+}
+
+.subtitle{
+text-align:center;
+color:#94a3b8;
+font-size:13px;
+margin-bottom:18px;
+}
+
+.coins{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:7px;
+}
+
+.coin{
+padding:12px 3px;
+border:0;
+border-radius:10px;
+background:#243449;
+color:white;
+font-weight:bold;
+font-size:13px;
+}
+
+.coin.active{
+background:#2563eb;
+}
+
+.status{
+text-align:center;
+color:#94a3b8;
+margin:15px 0;
+font-size:13px;
+min-height:18px;
+}
+
+.price{
+text-align:center;
+font-size:30px;
+font-weight:bold;
+margin:8px 0;
+}
+
+.change{
+text-align:center;
+}
+
+.signal{
+margin-top:18px;
+padding:20px;
+border-radius:18px;
+background:#07111f;
+text-align:center;
+}
+
+.signal-title{
+font-size:32px;
+font-weight:bold;
+}
+
+.AL{
+color:#22c55e;
+}
+
+.SAT{
+color:#ef4444;
+}
+
+.BEKLE{
+color:#facc15;
+}
+
+.GAL{
+color:#16a34a;
+}
+
+.GSAT{
+color:#dc2626;
+}
+
+.score{
+font-size:18px;
+margin-top:8px;
+}
+
+.grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:9px;
+margin-top:15px;
+}
+
+.box{
+background:#07111f;
+padding:13px;
+border-radius:12px;
+}
+
+.box span{
+display:block;
+color:#94a3b8;
+font-size:11px;
+margin-bottom:6px;
+}
+
+.box b{
+font-size:14px;
+}
+
+.section{
+margin-top:15px;
+background:#07111f;
+border-radius:14px;
+padding:15px;
+}
+
+.section h3{
+margin-top:0;
+}
+
+.reason{
+padding:7px 0;
+border-bottom:1px solid #1e293b;
+font-size:13px;
+}
+
+.action{
+width:100%;
+margin-top:15px;
+padding:14px;
+border:0;
+border-radius:12px;
+background:#2563eb;
+color:white;
+font-size:16px;
+font-weight:bold;
+}
+
+.scan{
+background:#7c3aed;
+}
+
+.history{
+font-size:12px;
+}
+
+.history div{
+padding:7px 0;
+border-bottom:1px solid #1e293b;
+}
+
+.footer{
+text-align:center;
+color:#64748b;
+font-size:11px;
+margin-top:16px;
+line-height:1.5;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="card">
+
+<h1>🤖 AI Kripto Sinyal Motoru</h1>
+
+<div class="subtitle">
+Gerçek piyasa verisi • Teknik analiz • Sinyal skoru
+</div>
+
+<div id="coins" class="coins"></div>
+
+<div id="status" class="status">
+Sistem hazırlanıyor...
+</div>
+
+<div id="price" class="price">
+-
+</div>
+
+<div id="change" class="change">
+-
+</div>
+
+<div class="signal">
+
+<div id="signal" class="signal-title BEKLE">
+BEKLE
+</div>
+
+<div id="score" class="score">
+Teknik skor: -
+</div>
+
+</div>
+
+<div class="grid">
+
+<div class="box">
+<span>RSI 14</span>
+<b id="rsi">-</b>
+</div>
+
+<div class="box">
+<span>MACD</span>
+<b id="macd">-</b>
+</div>
+
+<div class="box">
+<span>EMA 20</span>
+<b id="ema20">-</b>
+</div>
+
+<div class="box">
+<span>EMA 50</span>
+<b id="ema50">-</b>
+</div>
+
+<div class="box">
+<span>15 DK TREND</span>
+<b id="trend15">-</b>
+</div>
+
+<div class="box">
+<span>1 SAAT TREND</span>
+<b id="trend1">-</b>
+</div>
+
+<div class="box">
+<span>HACİM</span>
+<b id="volume">-</b>
+</div>
+
+<div class="box">
+<span>DESTEK</span>
+<b id="support">-</b>
+</div>
+
+<div class="box">
+<span>DİRENÇ</span>
+<b id="resistance">-</b>
+</div>
+
+<div class="box">
+<span>VERİ</span>
+<b id="data">-</b>
+</div>
+
+</div>
+
+<div class="section">
+
+<h3>🧠 Analiz</h3>
+
+<div id="reason1" class="reason">-</div>
+<div id="reason2" class="reason">-</div>
+<div id="reason3" class="reason">-</div>
+<div id="reason4" class="reason">-</div>
+<div id="reason5" class="reason">-</div>
+<div id="reason6" class="reason">-</div>
+
+</div>
+
+<button class="action" onclick="analizYap()">
+🔄 Analizi Yenile
+</button>
+
+<button class="action scan" onclick="coinleriTara()">
+🏆 En Güçlü Coini Bul
+</button>
+
+<div class="section">
+
+<h3>📜 Sinyal Geçmişi</h3>
+
+<div id="history" class="history">
+Henüz sinyal yok.
+</div>
+
+</div>
+
+<div class="footer">
+Gerçek piyasa verileri kullanılır.<br>
+Bu sistem yatırım tavsiyesi değildir.
+</div>
+
+</div>
+</div>
+
+<script>
+
+/* SADECE BU 18 COIN VAR */
+
+const coinler = [
+
+"LUNC",
+"BTC",
+"ETH",
+"XRP",
+"SOL",
+"XLM",
+"XDC",
+"XPR",
+"USTC",
+"PENGU",
+"MON",
+"KEKIUS",
+"REEF",
+"PEPE",
+"BABYDOGE",
+"SHIB",
+"FLOKI",
+"BONK"
+
+];
+
+let secili = "BTCUSDT";
+
+
+/* COIN BUTONLARI */
+
+function coinleriOlustur(){
+
+const alan =
+document.getElementById("coins");
+
+alan.innerHTML = "";
+
+coinler.forEach(function(coin){
+
+const buton =
+document.createElement("button");
+
+buton.className = "coin";
+
+buton.innerText = coin;
+
+if(coin === "BTC"){
+buton.classList.add("active");
+}
+
+buton.onclick = function(){
+
+secili = coin + "USDT";
+
+document.querySelectorAll(".coin")
+.forEach(function(x){
+x.classList.remove("active");
+});
+
+buton.classList.add("active");
+
+analizYap();
+
+};
+
+alan.appendChild(buton);
+
+});
+
+}
+
+
+/* EMA */
+
+function ema(data,period){
+
+let k = 2 / (period + 1);
+
+let result = data[0];
+
+for(let i=1;i<data.length;i++){
+
+result =
+data[i] * k +
+result * (1-k);
+
+}
+
+return result;
+
+}
+
+
+/* RSI */
+
+function rsi(data){
+
+let gain = 0;
+let loss = 0;
+
+for(
+let i=data.length-14;
+i<data.length;
+i++
+){
+
+let diff =
+data[i] - data[i-1];
+
+if(diff > 0){
+
+gain += diff;
+
+}else{
+
+loss -= diff;
+
+}
+
+}
+
+if(loss === 0){
+
+return 100;
+
+}
+
+let rs =
+gain / loss;
+
+return 100 -
+(100/(1+rs));
+
+}
+
+
+/* MACD */
+
+function macd(data){
+
+return (
+ema(data,12) -
+ema(data,26)
+);
+
+}
+
+
+/* FİYAT */
+
+function fiyatFormatla(x){
+
+if(!Number.isFinite(x)){
+return "-";
+}
+
+if(x >= 1000){
+
+return x.toLocaleString(
+"tr-TR",
+{
+maximumFractionDigits:2
+});
+
+}
+
+if(x >= 1){
+
+return x.toLocaleString(
+"tr-TR",
+{
+maximumFractionDigits:5
+});
+
+}
+
+return x.toLocaleString(
+"tr-TR",
+{
+maximumFractionDigits:9
+});
+
+}
+
+
+/* BINANCE */
+
+async function veriGetir(url){
+
+const response =
+await fetch(
+url,
+{
+cache:"no-store"
+}
+);
+
+if(!response.ok){
+
+throw new Error(
+"Veri alınamadı"
+);
+
+}
+
+return await response.json();
+
+}
+
+
+/* MUM */
+
+async function mumGetir(interval){
+
+return await veriGetir(
+
+"https://api.binance.com/api/v3/klines"+
+"?symbol="+secili+
+"&interval="+interval+
+"&limit=150"
+
+);
+
+}
+
+
+/* ANA ANALİZ */
+
+async function analizYap(){
+
+document.getElementById("status")
+.innerText =
+"📡 Gerçek piyasa verileri analiz ediliyor...";
+
+document.getElementById("data")
+.innerText =
+"Yükleniyor";
+
+try{
+
+const ticker =
+await veriGetir(
+
+"https://api.binance.com/api/v3/ticker/24hr"+
+"?symbol="+secili
+
+);
+
+const mum15 =
+await mumGetir("15m");
+
+const mum1h =
+await mumGetir("1h");
+
+
+const close15 =
+mum15.map(function(x){
+return Number(x[4]);
+});
+
+const close1h =
+mum1h.map(function(x){
+return Number(x[4]);
+});
+
+const volumes =
+mum15.map(function(x){
+return Number(x[5]);
+});
+
+
+const fiyat =
+Number(ticker.lastPrice);
+
+const degisim =
+Number(ticker.priceChangePercent);
+
+
+const rsiValue =
+rsi(close15);
+
+const ema20 =
+ema(close15,20);
+
+const ema50 =
+ema(close15,50);
+
+const macdValue =
+macd(close15);
+
+const ema1h =
+ema(close1h,20);
+
+
+const volumeNow =
+volumes[volumes.length-1];
+
+const volumeAvg =
+volumes
+.slice(-20)
+.reduce(
+function(a,b){
+return a+b;
+},
+0
+) / 20;
+
+
+const destek =
+Math.min(
+...close15.slice(-50)
+);
+
+const direnc =
+Math.max(
+...close15.slice(-50)
+);
+
+
+/* SKOR */
+
+let skor = 50;
+
+let nedenler = [];
+
+
+/* EMA */
+
+if(fiyat > ema20){
+
+skor += 8;
+
+nedenler.push(
+"Fiyat EMA 20 üzerinde."
+);
+
+}else{
+
+skor -= 8;
+
+nedenler.push(
+"Fiyat EMA 20 altında."
+);
+
+}
+
+
+if(ema20 > ema50){
+
+skor += 10;
+
+nedenler.push(
+"EMA 20, EMA 50 üzerinde."
+);
+
+}else{
+
+skor -= 10;
+
+nedenler.push(
+"EMA 20, EMA 50 altında."
+);
+
+}
+
+
+/* RSI */
+
+if(rsiValue < 30){
+
+skor += 18;
+
+nedenler.push(
+"RSI aşırı satım bölgesinde."
+);
+
+}
+
+else if(rsiValue < 45){
+
+skor += 7;
+
+nedenler.push(
+"RSI toparlanma bölgesinde."
+);
+
+}
+
+else if(rsiValue > 70){
+
+skor -= 18;
+
+nedenler.push(
+"RSI aşırı alım bölgesinde."
+);
+
+}
+
+else if(rsiValue > 55){
+
+skor -= 7;
+
+nedenler.push(
+"RSI yüksek bölgede."
+);
+
+}
+
+else{
+
+nedenler.push(
+"RSI nötr bölgede."
+);
+
+}
+
+
+/* MACD */
+
+if(macdValue > 0){
+
+skor += 10;
+
+nedenler.push(
+"MACD pozitif."
+);
+
+}else{
+
+skor -= 10;
+
+nedenler.push(
+"MACD negatif."
+);
+
+}
+
+
+/* 1 SAAT */
+
+if(fiyat > ema1h){
+
+skor += 8;
+
+nedenler.push(
+"1 saatlik trend pozitif."
+);
+
+}else{
+
+skor -= 8;
+
+nedenler.push(
+"1 saatlik trend negatif."
+);
+
+}
+
+
+/* HACİM */
+
+if(volumeNow > volumeAvg * 1.5){
+
+skor += 8;
+
+nedenler.push(
+"Hacim ortalamanın üzerinde."
+);
+
+}
+
+else if(
+volumeNow < volumeAvg * 0.7
+){
+
+skor -= 3;
+
+nedenler.push(
+"Hacim düşük."
+);
+
+}
+
+else{
+
+nedenler.push(
+"Hacim normal."
+);
+
+}
+
+
+/* SKOR SINIRI */
+
+skor =
+Math.max(
+0,
+Math.min(
+100,
+Math.round(skor)
+)
+);
+
+
+/* SİNYAL */
+
+let sinyal = "BEKLE";
+
+if(skor >= 82){
+
+sinyal =
+"GÜÇLÜ AL";
+
+}
+
+else if(skor >= 68){
+
+sinyal =
+"AL";
+
+}
+
+else if(skor <= 18){
+
+sinyal =
+"GÜÇLÜ SAT";
+
+}
+
+else if(skor <= 32){
+
+sinyal =
+"SAT";
+
+}
+
+
+/* EKRAN */
+
+document.getElementById("status")
+.innerText =
+secili +
+" • Güncel analiz";
+
+
+document.getElementById("data")
+.innerText =
+"🟢 Canlı";
+
+
+document.getElementById("price")
+.innerText =
+fiyatFormatla(fiyat) +
+" USDT";
+
+
+document.getElementById("change")
+.innerText =
+"24 saat: " +
+(degisim >= 0 ? "+" : "") +
+degisim.toFixed(2) +
+"%";
+
+
+const signal =
+document.getElementById("signal");
+
+
+signal.innerText =
+sinyal;
+
+
+signal.className =
+"signal-title " +
+(
+sinyal === "GÜÇLÜ AL"
+? "GAL"
+:
+sinyal === "GÜÇLÜ SAT"
+? "GSAT"
+:
+sinyal === "AL"
+? "AL"
+:
+sinyal === "SAT"
+? "SAT"
+:
+"BEKLE"
+);
+
+
+document.getElementById("score")
+.innerText =
+"Teknik skor: " +
+skor +
+"/100";
+
+
+document.getElementById("rsi")
+.innerText =
+rsiValue.toFixed(2);
+
+
+document.getElementById("macd")
+.innerText =
+macdValue.toFixed(8);
+
+
+document.getElementById("ema20")
+.innerText =
+fiyatFormatla(ema20);
+
+
+document.getElementById("ema50")
+.innerText =
+fiyatFormatla(ema50);
+
+
+document.getElementById("trend15")
+.innerText =
+fiyat > ema20
+? "🟢 Yükseliş"
+: "🔴 Düşüş";
+
+
+document.getElementById("trend1")
+.innerText =
+fiyat > ema1h
+? "🟢 Yükseliş"
+: "🔴 Düşüş";
+
+
+document.getElementById("volume")
+.innerText =
+volumeNow > volumeAvg * 1.5
+? "🔥 Yüksek"
+:
+volumeNow < volumeAvg * 0.7
+? "🔵 Düşük"
+: "Normal";
+
+
+document.getElementById("support")
+.innerText =
+fiyatFormatla(destek);
+
+
+document.getElementById("resistance")
+.innerText =
+fiyatFormatla(direnc);
+
+
+/* NEDENLER */
+
+for(
+let i=1;
+i<=6;
+i++
+){
+
+document.getElementById(
+"reason"+i
+).innerText =
+nedenler[i-1] || "-";
+
+}
+
+
+/* GEÇMİŞ */
+
+gecmiseKaydet(
+sinyal,
+skor
+);
+
+
+}
+
+catch(error){
+
+console.log(error);
+
+document.getElementById("status")
+.innerText =
+"❌ Bu coin için gerçek Binance verisi bulunamadı.";
+
+document.getElementById("data")
+.innerText =
+"Desteklenmiyor";
+
+}
+
+}
+
+
+/* GEÇMİŞE KAYDET */
+
+function gecmiseKaydet(
+sinyal,
+skor
+){
+
+let gecmis =
+JSON.parse(
+localStorage.getItem(
+"sinyalGecmisi"
+) || "[]"
+);
+
+
+gecmis.unshift({
+
+coin:
+secili.replace(
+"USDT",
+""
+),
+
+sinyal:
+sinyal,
+
+skor:
+skor,
+
+zaman:
+new Date()
+.toLocaleTimeString(
+"tr-TR"
+)
+
+});
+
+
+gecmis =
+gecmis.slice(0,20);
+
+
+localStorage.setItem(
+"sinyalGecmisi",
+JSON.stringify(
+gecmis
+)
+);
+
+
+gecmisiGoster();
+
+}
+
+
+/* GEÇMİŞİ GÖSTER */
+
+function gecmisiGoster(){
+
+let gecmis =
+JSON.parse(
+localStorage.getItem(
+"sinyalGecmisi"
+) || "[]"
+);
+
+
+if(gecmis.length === 0){
+
+document.getElementById(
+"history"
+).innerText =
+"Henüz sinyal yok.";
+
+return;
+
+}
+
+
+document.getElementById(
+"history"
+).innerHTML =
+
+gecmis
+.slice(0,10)
+.map(function(x){
+
+return `
+<div>
+<b>${x.coin}</b>
+—
+${x.sinyal}
+—
+${x.skor}/100
+—
+${x.zaman}
+</div>
+`;
+
+})
+.join("");
+
+}
+
+
+/* COİNLERİ TARA */
+
+async function coinleriTara(){
+
+document.getElementById(
+"status"
+).innerText =
+"🏆 Coinler taranıyor...";
+
+let sonuc = [];
+
+
+for(
+const coin of coinler
+){
+
+try{
+
+const url =
+"https://api.binance.com/api/v3/ticker/24hr?symbol="+
+coin+
+"USDT";
+
+
+const data =
+await veriGetir(url);
+
+
+sonuc.push({
+
+coin:coin,
+
+degisim:
+Number(
+data.priceChangePercent
+)
+
+});
+
+}
+
+catch(error){
+
+console.log(
+coin+
+" verisi yok."
+);
+
+}
+
+}
+
+
+/* SIRALA */
+
+sonuc.sort(
+function(a,b){
+
+return b.degisim -
+a.degisim;
+
+});
+
+
+if(sonuc.length > 0){
+
+const enIyi =
+sonuc[0];
+
+
+document.getElementById(
+"status"
+).innerText =
+
+"🏆 En güçlü 24 saatlik hareket: " +
+enIyi.coin +
+" (" +
+(enIyi.degisim >= 0 ? "+" : "") +
+enIyi.degisim.toFixed(2) +
+"%)";
+
+}
+
+else{
+
+document.getElementById(
+"status"
+).innerText =
+"Coin verileri alınamadı.";
+
+}
+
+}
+
+
+/* BAŞLAT */
+
+coinleriOlustur();
+
+gecmisiGoster();
+
+analizYap();
+
+
+/* 5 DAKİKADA YENİLE */
+
+setInterval(
+analizYap,
+300000
+);
+
+</script>
+
+</body>
+</html>
